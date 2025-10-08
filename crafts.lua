@@ -2,6 +2,8 @@
 local S = hangglider.translator
 
 local has_unifieddyes = minetest.get_modpath("unifieddyes")
+local dye_prefix_pattern_universal = "^.*dyes?:" -- Matching dye prefixes: dyes, mcl_dyes, mcl_dye, fl_dyes.
+local dye_suffix_pattern_farlands  = "_dye$"     -- A suffix added to dye names in the Farlands game.
 
 local dye_colors = {
 	white      = "ffffff",
@@ -39,13 +41,17 @@ local translated_colors = {
 	pink       = S("Pink"),
 }
 
+
+
+
 local function get_dye_color(name)
 	local color
 	if has_unifieddyes then
 		color = unifieddyes.get_color_from_dye_name(name)
 	end
 	if not color then
-		color = string.match(name, "^dye:(.+)$")
+		color = string.match(name, dye_prefix_pattern_universal.."(.+)$")
+		string.gsub(name, dye_suffix_pattern_farlands, "")
 		if color then
 			color = dye_colors[color]
 		end
@@ -54,7 +60,9 @@ local function get_dye_color(name)
 end
 
 local function get_color_name(name)
-	name = string.gsub(name, "^dye:", "")
+	-- Remove prefix and potential suffix
+	name = string.gsub(name, dye_prefix_pattern_universal, "")
+	name = string.gsub(name, dye_suffix_pattern_farlands, "")
 	return translated_colors[name]
 end
 
@@ -64,6 +72,7 @@ local function get_color_name_from_color(color)
 			return translated_colors[name]
 		end
 	end
+	return nil
 end
 
 -- This recipe is just a placeholder
@@ -92,8 +101,8 @@ minetest.register_on_craft(function(crafted_item, _, old_craft_grid)
 		elseif minetest.get_item_group(name, "dye") ~= 0 then
 			color = get_dye_color(name)
 			color_name = get_color_name(name)
-		elseif "wool:white" == stack:get_name()
-			or "default:paper" == stack:get_name()
+		elseif xcompat.materials.wool_white == stack:get_name()
+			or xcompat.materials.paper == stack:get_name()
 		then
 			wear = 0
 		end
@@ -115,15 +124,15 @@ end)
 minetest.register_craft({
 	output = "hangglider:hangglider",
 	recipe = {
-		{"default:paper", "default:paper", "default:paper"},
-		{"default:paper", "hangglider:hangglider", "default:paper"},
-		{"default:paper", "default:paper", "default:paper"},
+		{xcompat.materials.paper, xcompat.materials.paper, xcompat.materials.paper},
+		{xcompat.materials.paper, "hangglider:hangglider", xcompat.materials.paper},
+		{xcompat.materials.paper, xcompat.materials.paper, xcompat.materials.paper},
 	},
 })
 minetest.register_craft({
 	output = "hangglider:hangglider",
 	recipe = {
-		{"hangglider:hangglider", "wool:white"},
+		{"hangglider:hangglider", xcompat.materials.wool_white},
 	},
 })
 
@@ -131,8 +140,8 @@ minetest.register_craft({
 minetest.register_craft({
 	output = "hangglider:hangglider",
 	recipe = {
-		{"wool:white", "wool:white", "wool:white"},
-		{"default:stick", "", "default:stick"},
-		{"", "default:stick", ""},
+		{xcompat.materials.wool_white, xcompat.materials.wool_white, xcompat.materials.wool_white},
+		{xcompat.materials.stick, "", xcompat.materials.stick},
+		{"", xcompat.materials.stick, ""},
 	}
 })

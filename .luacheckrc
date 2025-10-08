@@ -10,4 +10,5 @@ read_globals = {
 	"player_monoids",
 	"pova",
 	"unifieddyes",
+	"xcompat",
 }

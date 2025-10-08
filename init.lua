@@ -251,7 +251,7 @@ local function hangglider_use(stack, player)
 			local color = stack:get_meta():get("hangglider_color")
 			if color then
 				entity:set_properties({
-					textures = {"wool_white.png^[multiply:#"..color, "default_wood.png"}
+					textures = {xcompat.textures.wool.white.."^[multiply:#"..color, xcompat.textures.wood.apple.planks}
 				})
 			end
 			set_hud_overlay(player, name, true)
@@ -297,7 +297,7 @@ minetest.register_entity("hangglider:glider", {
 		visual_size = {x = 12, y = 12},
 		collisionbox = {0,0,0,0,0,0},
 		mesh = "hangglider.obj",
-		textures = {"wool_white.png", "default_wood.png"},
+		textures = {xcompat.textures.wool.white, xcompat.textures.wood.apple.planks},
 		immortal = true,
 		static_save = false,
 	},
