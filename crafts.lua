@@ -130,7 +130,9 @@ local function crafting_callback_handle_placeholder_recipe(crafted_item, _, old_
 	local wear, repaired, dye_name, color, color_name, repaired = 0, false, nil, nil, nil
 	for _,stack in ipairs(old_craft_grid) do
 		local name = stack:get_name()
-		if name == "hangglider:hangglider" then
+		if not name or name == "" then
+			-- This stack is empty, skip all checks
+		elseif name == "hangglider:hangglider" then
 			wear       = stack:get_wear()
 			color      = stack:get_meta():get("hangglider_color")
 			color_name = get_color_name_from_color(color)
