@@ -36,14 +36,14 @@ end
 local function crafting_callback_handle_placeholder_recipe(crafted_item, _, old_craft_grid)
 	if crafted_item:get_name() ~= "hangglider:hangglider" then
 		-- Function called for an unrelated crafting recipe
-		return  
+		return
 	end
 	-- Get existing state and present materials
-	local wear, repaired, dye_name, color, color_name, repaired = 0, false, nil, nil, nil
+	local wear, repaired, dye_name, color, color_name = 0, false, nil, nil, nil
 	for _,stack in ipairs(old_craft_grid) do
 		local name = stack:get_name()
 		if not name or name == "" then
-			-- This stack is empty, skip all checks
+			do end -- The stack is empty, do nothing and skip all checks for this stack.
 		elseif name == "hangglider:hangglider" then
 			wear       = stack:get_wear()
 			color      = stack:get_meta():get("hangglider_color")
@@ -52,9 +52,9 @@ local function crafting_callback_handle_placeholder_recipe(crafted_item, _, old_
 			dye_name = name
 		else
 			for _,repair_item in ipairs(repair_items) do
-				if name == repair_item 
-					or minetest.get_item_group(name, string.match(repair_item, "^group:(.*)$")) ~= 0 
-				then 
+				if name == repair_item
+					or minetest.get_item_group(name, string.match(repair_item, "^group:(.*)$")) ~= 0
+				then
 					repaired = true
 				end
 			end
