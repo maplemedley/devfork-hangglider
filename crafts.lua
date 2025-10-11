@@ -87,7 +87,14 @@ local function get_color_name_from_color(color)
 	return nil
 end
 
--- This recipe is just a placeholder
+
+-- Recipes ---------------------------------------------------------------------
+local repair_items      = {"group:wool", xcompat.materials.paper}
+local repair_percentage = 100
+
+
+-- Hangglider color recipe handling
+-- Register a placeholder recipe (Doesn't apply color or wear)
 do
 	local item = ItemStack("hangglider:hangglider")
 	item:get_meta():set_string("description", S("Colored Glider"))
@@ -98,29 +105,50 @@ do
 	})
 end
 
--- This is what actually creates the colored hangglider
+-- Add proper handler for recipes (This applies color and wear)
 minetest.register_on_craft(function(crafted_item, _, old_craft_grid)
 	if crafted_item:get_name() ~= "hangglider:hangglider" then
-		return
+		-- Function called for an unrelated crafting recipe
+		return  
 	end
-	local wear, color, color_name
+	-- Get existing state and present materials
+	local wear, repaired, dye_name, color, color_name, repaired = 0, false, nil, nil, nil
 	for _,stack in ipairs(old_craft_grid) do
 		local name = stack:get_name()
 		if name == "hangglider:hangglider" then
-			wear = stack:get_wear()
-			color = stack:get_meta():get("hangglider_color")
+			wear       = stack:get_wear()
+			color      = stack:get_meta():get("hangglider_color")
 			color_name = get_color_name_from_color(color)
 		elseif minetest.get_item_group(name, "dye") ~= 0 then
-			color = get_dye_color(name)
-			color_name = get_color_name(name)
-		elseif xcompat.materials.wool_white == stack:get_name()
-			or xcompat.materials.paper == stack:get_name()
-		then
-			wear = 0
+			dye_name = name
+		else
+			for _,repair_item in ipairs(repair_items) do
+				if name == repair_item 
+					or minetest.get_item_group(name, string.match(repair_item, "^group:(.*)$")) ~= 0 
+				then 
+					repaired = true
+				end
+			end
 		end
 	end
+
+	-- Determine new state and color
+	-- Apply dye if found
+	if dye_name then
+		color      = get_dye_color(dye_name)
+		color_name = get_color_name(dye_name)
+	end
+
+	-- Repair if repair item was present
+	if repaired then
+		wear = wear - (65535 * (repair_percentage / 100))
+		if wear < 0 then wear = 0 end
+	end
+
+	-- Apply item changes if valid
 	if wear and color and color_name then
 		if color == "ffffff" then
+			-- Return an uncolored glider
 			return ItemStack({name = "hangglider:hangglider", wear = wear})
 		end
 		local meta = crafted_item:get_meta()
@@ -132,7 +160,8 @@ minetest.register_on_craft(function(crafted_item, _, old_craft_grid)
 	end
 end)
 
--- Repairing
+
+-- Repairing recipes
 minetest.register_craft({
 	output = "hangglider:hangglider",
 	recipe = {
@@ -141,18 +170,18 @@ minetest.register_craft({
 		{xcompat.materials.paper, xcompat.materials.paper, xcompat.materials.paper},
 	},
 })
+
 minetest.register_craft({
 	output = "hangglider:hangglider",
-	recipe = {
-		{"hangglider:hangglider", xcompat.materials.wool_white},
-	},
+	recipe = {"hangglider:hangglider", xcompat.materials.wool_white},
+	type = "shapeless",
 })
 
--- Main craft
+-- New hangglider recipe
 minetest.register_craft({
 	output = "hangglider:hangglider",
 	recipe = {
-		{xcompat.materials.wool_white, xcompat.materials.wool_white, xcompat.materials.wool_white},
+		{"group:wool", "group:wool", "group:wool"},
 		{xcompat.materials.stick, "", xcompat.materials.stick},
 		{"", xcompat.materials.stick, ""},
 	}
