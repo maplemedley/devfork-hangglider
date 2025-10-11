@@ -93,8 +93,23 @@ local repair_items      = {"group:wool", xcompat.materials.paper}
 local repair_percentage = 100
 
 
--- Hangglider color recipe handling
--- Register a placeholder recipe (Doesn't apply color or wear)
+-- Placeholder repairing recipes (Doesn't directly apply repair, see handler)
+minetest.register_craft({
+	output = "hangglider:hangglider",
+	recipe = {
+		{xcompat.materials.paper, xcompat.materials.paper, xcompat.materials.paper},
+		{xcompat.materials.paper, "hangglider:hangglider", xcompat.materials.paper},
+		{xcompat.materials.paper, xcompat.materials.paper, xcompat.materials.paper},
+	},
+})
+
+minetest.register_craft({
+	output = "hangglider:hangglider",
+	recipe = {"hangglider:hangglider", "group:wool"},
+	type = "shapeless",
+})
+
+-- Placeholder color recipe (Doesn't drectly apply color, see handler)
 do
 	local item = ItemStack("hangglider:hangglider")
 	item:get_meta():set_string("description", S("Colored Glider"))
@@ -105,8 +120,8 @@ do
 	})
 end
 
--- Add proper handler for recipes (This applies color and wear)
-minetest.register_on_craft(function(crafted_item, _, old_craft_grid)
+-- Recipe handler (This is what applies color and repair)
+local function crafting_callback_handle_placeholder_recipe(crafted_item, _, old_craft_grid)
 	if crafted_item:get_name() ~= "hangglider:hangglider" then
 		-- Function called for an unrelated crafting recipe
 		return  
@@ -132,14 +147,13 @@ minetest.register_on_craft(function(crafted_item, _, old_craft_grid)
 		end
 	end
 
-	-- Determine new state and color
-	-- Apply dye if found
+	-- Overwrite color with dye if present
 	if dye_name then
 		color      = get_dye_color(dye_name)
 		color_name = get_color_name(dye_name)
 	end
 
-	-- Repair if repair item was present
+	-- Repair if any repair item present
 	if repaired then
 		wear = wear - (65535 * (repair_percentage / 100))
 		if wear < 0 then wear = 0 end
@@ -158,26 +172,12 @@ minetest.register_on_craft(function(crafted_item, _, old_craft_grid)
 		crafted_item:set_wear(wear)
 		return crafted_item
 	end
-end)
+end
+-- Register handler as a callback for any crafting action
+minetest.register_on_craft(crafting_callback_handle_placeholder_recipe)
 
 
--- Repairing recipes
-minetest.register_craft({
-	output = "hangglider:hangglider",
-	recipe = {
-		{xcompat.materials.paper, xcompat.materials.paper, xcompat.materials.paper},
-		{xcompat.materials.paper, "hangglider:hangglider", xcompat.materials.paper},
-		{xcompat.materials.paper, xcompat.materials.paper, xcompat.materials.paper},
-	},
-})
-
-minetest.register_craft({
-	output = "hangglider:hangglider",
-	recipe = {"hangglider:hangglider", xcompat.materials.wool_white},
-	type = "shapeless",
-})
-
--- New hangglider recipe
+-- Hangglider recipe
 minetest.register_craft({
 	output = "hangglider:hangglider",
 	recipe = {
